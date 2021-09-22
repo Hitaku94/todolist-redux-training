@@ -5,8 +5,8 @@ let lastId = 0;
 
 const initialState = {
   list: [],
-    loading: false,
-    lastFetch: null
+  loading: false,
+  lastFetch: null
 }
 
 const slice = createSlice({
@@ -17,15 +17,18 @@ const slice = createSlice({
       todos.list.push(action.payload);
     },
 
-    todosReceived: (todos, action) => {
-      todos.list = action.payload;
-      todos.loading = false;
-      todos.lastFetch = Date.now();
+    todoFinished: (todos, action) => {
+      const index = todos.list.findIndex((todo) => todo.id === action.payload.id)
+      todos.list[index].resolved = action.payload.resolved
+    },
+
+    todoDeleted: (todos, action) => {
+     return todos.list.filter((todo) => todo.id !== action.payload.id)
     }
   }
 })
 
-const { todoAdded } = slice.actions;
+const { todoAdded, todoFinished, todoDeleted } = slice.actions;
 export default slice.reducer;
 
 export const todoAdd = todo => todoAdded({
@@ -34,9 +37,23 @@ export const todoAdd = todo => todoAdded({
   id: ++lastId,
 })
 
+export const todoFinish = (id, resolved) => todoFinished({
+  resolved: !resolved,
+  id,
+})
+
+export const todoDelete = id => todoDeleted({
+  id,
+})
+
 //export const loadTodos = state => state.entities.todos.list same as below
 
 export const loadTodos = createSelector(
   state => state.entities.todos,
-  todos => todos.list
+  todos => todos.list,
 );
+
+export const finishedTodos = createSelector(
+  state => state.entities.todos,
+  todos => todos.list.filter((todo) => todo.resolved == true)
+)
